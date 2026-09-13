@@ -42,22 +42,25 @@ Press **F6** (configurable) in-game to open the FPS Unlock menu. From there you 
 
 - Toggle the mod on/off
 - Enable/disable VSync
+- Type a custom FPS and press **Apply** (shown when the build's IL2CPP keeps the text field)
 - Drag the slider to adjust the target (30–1000)
 - Jump straight to **Unlimited** or **240 FPS**
 
-> **Why no input box?** The menu deliberately has no text field for typing a
-> custom FPS. `GUI.TextField` routes through `GUI.DoTextField`, which IL2CPP
-> strips from the game image when the game never calls it — invoking it throws
-> a `NotSupportedException` (method unstripping failed) and crashes the menu.
-> The slider covers every value in range (30–1000), so an input box would be
-> redundant even if it were safe.
+> **Text box availability** — the menu shows a text field for typing a custom
+> FPS *only when* the game's IL2CPP build keeps it. `GUI.TextField` routes
+> through `GUI.DoTextField`, which IL2CPP strips whenever the game never calls
+> it; invoking a stripped method throws a `NotSupportedException` (method
+> unstripping failed) and crashes the menu. The mod probes the text field on
+> first render: if stripped, it's hidden and the slider + preset buttons cover
+> the full 30–1000 range instead.
 
 > **Menu availability** — no Unity IMGUI method is guaranteed across every
 > IL2CPP build; IL2CPP strips whatever each game's code never references. The
-> menu uses a small set of IMGUI controls that survive broadly (box, label,
-> toggle, button, slider), and the mod **probes at runtime**: if the build
-> stripped any of them, the menu disables itself instead of crashing and you
-> get a notification telling you to configure via MelonLoader settings.
+> menu uses a small set of IMGUI controls (box, label, toggle, button, slider,
+> and the optional text field) and **probes them at runtime**: a control that
+> the build stripped disables only itself and logs a notice — the rest of the
+> menu keeps working, and the mod never crashes. The FPS-unlock core
+> (`targetFrameRate`/`vSyncCount`) uses stable engine APIs and always works.
 
 ## Configuration
 
@@ -75,6 +78,7 @@ Settings live in MelonLoader's preferences (e.g. `UserData/MelonPreferences.cfg`
 
 - Target FPS values are clamped to the **30–1000** range. Use `-1` for unlimited.
 - Enabling `ForceEveryFrame` has a small per-frame cost; leave it off unless you need it.
+- Saved settings are re-applied for the first few seconds after launch, because a game's own startup often overwrites the frame rate and VSync.
 - Frame rates above your monitor's refresh rate will not render more frames than the display supports, but they can reduce input latency.
 
 ## Building
